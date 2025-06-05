@@ -1,21 +1,14 @@
-# model_summary.py
-
 import torch
-from train_transformer import ResNetFeatureExtractor, CausalTransformer
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Load full model from checkpoint
+checkpoint = torch.load("checkpoints/epoch_10.pt", map_location="cpu")
 
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+# If the checkpoint is a full model (not just state_dict), skip loading into nn.Module
+# Count parameters directly
+if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+    state_dict = checkpoint["state_dict"]
+else:
+    state_dict = checkpoint
 
-def main():
-    feature_extractor = ResNetFeatureExtractor().to(DEVICE)
-    decoder = CausalTransformer().to(DEVICE)
-
-    print("=== Model Parameter Counts ===")
-    print(f"Feature Extractor (ResNet18): {count_parameters(feature_extractor):,} trainable parameters")
-    print(f"Transformer Decoder: {count_parameters(decoder):,} trainable parameters")
-    print(f"Total: {count_parameters(feature_extractor) + count_parameters(decoder):,} trainable parameters")
-
-if __name__ == "__main__":
-    main()
+total_params = sum(v.numel() for k, v in state_dict.items())
+print(f"Total parameters (from state_dict): {total_params:,}")
