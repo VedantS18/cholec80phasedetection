@@ -1,14 +1,16 @@
 import torch
+import torch.nn as nn
+from resnetgru import PhaseGRU  # adjust the import based on your directory structure
 
-# Load full model from checkpoint
-checkpoint = torch.load("checkpoints/epoch_10.pt", map_location="cpu")
+# Load your trained model
+MODEL_PATH = "checkpoints/Epoch_10.pt"
+model = PhaseGRU(input_dim=512, hidden_dim=256, num_classes=7)
+model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
 
-# If the checkpoint is a full model (not just state_dict), skip loading into nn.Module
-# Count parameters directly
-if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-    state_dict = checkpoint["state_dict"]
-else:
-    state_dict = checkpoint
+# Count total and trainable parameters
+total_params = sum(p.numel() for p in model.parameters())
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-total_params = sum(v.numel() for k, v in state_dict.items())
-print(f"Total parameters (from state_dict): {total_params:,}")
+print(f"Total parameters: {total_params:,}")
+print(f"Trainable parameters: {trainable_params:,}")
+
